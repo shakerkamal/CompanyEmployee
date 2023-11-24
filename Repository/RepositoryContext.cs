@@ -2,7 +2,7 @@
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Entities
+namespace Repository
 {
     public class RepositoryContext : DbContext
     {
