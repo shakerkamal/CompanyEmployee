@@ -1,6 +1,6 @@
 ﻿namespace Shared.DataTransferObjects
 {
-    public class EmployeeCreationDto : EmployeeManipulationDto
+    public record EmployeeCreationDto : EmployeeManipulationDto
     {
     }
 }

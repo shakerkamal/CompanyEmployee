@@ -69,5 +69,18 @@ namespace Service
             _repositoryManager.Employee.DeleteEmployee(employeeForCompany);
             _repositoryManager.Save();
         }
+
+        public void UpdateEmployeeForCompany(Guid companyId, Guid id, EmployeeUpdateDto employeeUpdateDto, bool compTrackChanges, bool trackChanges)
+        {
+            var company = _repositoryManager.Company.GetCompany(companyId, compTrackChanges);
+            if (company is null)
+                throw new CompanyNotFoundException(companyId);
+            var employeeForCompany = _repositoryManager.Employee.GetEmployee(companyId, id, trackChanges);
+            if (employeeForCompany is null)
+                throw new EmployeeNotFoundException(id);
+
+            _mapper.Map(employeeUpdateDto, employeeForCompany);
+            _repositoryManager.Save();
+        }
     }
 }

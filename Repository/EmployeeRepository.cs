@@ -20,6 +20,11 @@ namespace Repository
             Create(employee);
         }
 
+        public void DeleteEmployee(Employee employee)
+        {
+            Delete(employee);
+        }
+
         public Employee GetEmployee(Guid companyId, Guid id, bool trackChanges)
         {
             return FindByCondition(e => e.CompanyId == companyId && e.Id == id, trackChanges)
@@ -30,6 +35,11 @@ namespace Repository
         {
             return FindByCondition(e => e.CompanyId == companyId, trackChanges)
                 .OrderBy(e => e.Name);
+        }
+
+        public void UpdateEmployee(Employee employee)
+        {
+            Update(employee);
         }
     }
 }

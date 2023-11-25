@@ -1,9 +1,4 @@
 ﻿using Shared.DataTransferObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Service.Contracts
 {
@@ -13,5 +8,6 @@ namespace Service.Contracts
         EmployeeDto GetEmployee(Guid companyId, Guid id, bool trackChanges);
         EmployeeDto CreateEmployee(Guid companyId, EmployeeCreationDto employeeCreationDto, bool trackChanges);
         void DeleteEmployeeForCompany(Guid companyId, Guid id, bool trackChanges);
+        void UpdateEmployeeForCompany(Guid companyId, Guid id, EmployeeUpdateDto employeeUpdateDto, bool compTrackChanges, bool trackChanges);
     }
 }
