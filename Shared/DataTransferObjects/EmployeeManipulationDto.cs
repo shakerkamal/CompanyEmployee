@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Entities.DTO
+namespace Shared.DataTransferObjects
 {
     public abstract class EmployeeManipulationDto
     {

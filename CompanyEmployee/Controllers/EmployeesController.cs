@@ -1,10 +1,7 @@
-﻿using AutoMapper;
-using Contracts;
-using Entities.DTO;
-using Entities.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Service.Contracts;
+using Shared.DataTransferObjects;
 using System;
-using System.Collections.Generic;
 
 namespace CompanyEmployee.Controllers
 {
@@ -12,49 +9,26 @@ namespace CompanyEmployee.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-        private readonly IRepositoryManager _repository;
-        private readonly ILoggerManager _logger;
-        private readonly IMapper _mapper;
+        private readonly IServiceManager _serviceManager;
 
-        public EmployeesController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper)
+        public EmployeesController(IServiceManager serviceManager)
         {
-            _repository = repository;
-            _logger = logger;
-            _mapper = mapper;
+            _serviceManager = serviceManager;
         }
 
         [HttpGet]
         public IActionResult GetEmployeesForCompany(Guid companyId)
         {
-            var company = _repository.Company.GetCompany(companyId, trackChanges: false);
+            var company = _serviceManager.EmployeeService.GetEmployees(companyId, trackChanges: false);
 
-            if (company == null)
-            {
-                return NotFound();
-            }
-
-            var employees = _repository.Employee.GetEmployees(companyId, trackChanges: false);
-            var mappedEmployees = _mapper.Map<IEnumerable<EmployeeDto>>(employees);
-            return Ok(mappedEmployees);
+            return Ok(company);
         }
 
         [HttpGet("{id}", Name = "GetEmployeeForCompany")]
         public IActionResult GetEmployeeForCompany(Guid companyId, Guid id)
         {
-            var company = _repository.Company.GetCompany(companyId, trackChanges: false);
-
-            if (company == null)
-            {
-                return NotFound();
-            }
-
-            var employee = _repository.Employee.GetEmployee(companyId, id, trackChanges: false);
-            if (employee == null)
-            {
-                return NotFound();
-            }
-            var mappedEmployee = _mapper.Map<EmployeeDto>(employee);
-            return Ok(mappedEmployee);
+            var employee = _serviceManager.EmployeeService.GetEmployee(companyId, id, trackChanges: false);
+            return Ok(employee);
         }
 
         [HttpPost]
@@ -62,21 +36,10 @@ namespace CompanyEmployee.Controllers
         {
             if (employee == null)
             {
-                return BadRequest();
-            }
-            var company = _repository.Company.GetCompany(companyId, trackChanges: false);
-
-            if (company == null)
-            {
-                return NotFound();
+                return BadRequest("CompanyCreationDto object is null");
             }
 
-            var employeeEntity = _mapper.Map<Employee>(employee);
-
-            _repository.Employee.CreateEmployee(companyId, employeeEntity);
-            _repository.Save();
-
-            var employeeToReturn = _mapper.Map<EmployeeDto>(employeeEntity);
+            var employeeToReturn = _serviceManager.EmployeeService.CreateEmployee(companyId, employee, trackChanges:false);
 
             return CreatedAtRoute("GetEmployeeForCompany", new { companyId, id = employeeToReturn.Id }, employeeToReturn);
         }

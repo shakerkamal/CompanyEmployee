@@ -1,4 +1,4 @@
-﻿namespace Entities.DTO
+﻿namespace Shared.DataTransferObjects
 {
     public class EmployeeCreationDto : EmployeeManipulationDto
     {

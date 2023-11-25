@@ -1,10 +1,9 @@
-﻿using Contracts;
+﻿using AutoMapper;
+using Contracts;
+using Entities.Exceptions;
+using Entities.Models;
 using Service.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Shared.DataTransferObjects;
 
 namespace Service
 {
@@ -12,12 +11,72 @@ namespace Service
     {
         private readonly IRepositoryManager _repositoryManager;
         private readonly ILoggerManager _loggerManager;
+        private readonly IMapper _mapper;
 
-        public CompanyService(IRepositoryManager repositoryManager, ILoggerManager loggerManager)
+        public CompanyService(IRepositoryManager repositoryManager, ILoggerManager loggerManager,IMapper mapper)
         {
             _repositoryManager = repositoryManager;
             _loggerManager = loggerManager;
+            _mapper = mapper;
         }
 
+        public IEnumerable<CompanyDto> GetAllCompanies(bool trackChanges)
+        {
+            var companies = _repositoryManager.Company.GetAllCompanies(trackChanges);
+            var result = _mapper.Map<IEnumerable<CompanyDto>>(companies);
+            return result;
+        }
+
+        public CompanyDto GetCompany(Guid companyId, bool trackChanges)
+        {
+            var company = _repositoryManager.Company.GetCompany(companyId, trackChanges);
+            if (company is null)
+                throw new CompanyNotFoundException(companyId);
+            var result = _mapper.Map<CompanyDto>(company);
+            return result;
+        }
+
+        public CompanyDto CreateCompany(CompanyCreationDto company)
+        {
+            var companyEntity = _mapper.Map<Company>(company);
+
+            _repositoryManager.Company.CreateCompany(companyEntity);
+            _repositoryManager.Save();
+
+            var result = _mapper.Map<CompanyDto>(companyEntity);
+            return result;
+        }
+
+        public IEnumerable<CompanyDto> GetByIds(IEnumerable<Guid> ids, bool trackChanges)
+        {
+            if (ids is null) 
+                throw new IdParametersBadRequestException();
+            
+            var companyEntities = _repositoryManager.Company.GetByIds(ids, trackChanges); 
+            if (ids.Count() != companyEntities.Count()) 
+                throw new CollectionByIdsBadRequestException(); 
+
+            var companiesToReturn = _mapper.Map<IEnumerable<CompanyDto>>(companyEntities); 
+            return companiesToReturn;
+        }
+
+        public (IEnumerable<CompanyDto> companies, string ids) CreateCompanyCollection(IEnumerable<CompanyCreationDto> companyCollection)
+        {
+            if (companyCollection is null) 
+                throw new CompanyCollectionBadRequest(); 
+            
+            var companyEntities = _mapper.Map<IEnumerable<Company>>(companyCollection); 
+            
+            foreach (var company in companyEntities) 
+            { 
+                _repositoryManager.Company.CreateCompany(company); 
+            }
+            _repositoryManager.Save(); 
+            
+            var companyCollectionToReturn = _mapper.Map<IEnumerable<CompanyDto>>(companyEntities); 
+            var ids = string.Join(",", companyCollectionToReturn.Select(c => c.Id));
+
+            return (companies: companyCollectionToReturn, ids: ids);
+        }
     }
 }

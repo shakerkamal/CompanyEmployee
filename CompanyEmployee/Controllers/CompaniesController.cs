@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
-using Contracts;
-using Entities.DTO;
+using CompanyEmployee.ModelBinders;
 using Entities.Models;
 using Microsoft.AspNetCore.Mvc;
+using Service.Contracts;
+using Shared.DataTransferObjects;
 using System;
 using System.Collections.Generic;
 
@@ -12,54 +13,55 @@ namespace CompanyEmployee.Controllers
     [ApiController]
     public class CompaniesController : ControllerBase
     {
-        private readonly IRepositoryManager _repository;
-        private readonly ILoggerManager _logger;
+        private readonly IServiceManager _serviceManager;
         private readonly IMapper _mapper;
 
-        public CompaniesController(IRepositoryManager repository, ILoggerManager logger, IMapper mapper)
+        public CompaniesController(IServiceManager serviceManager, IMapper mapper)
         {
-            _repository = repository;
-            _logger = logger;
+            _serviceManager = serviceManager;
             _mapper = mapper;
         }
 
         [HttpGet]
         public IActionResult GetCompanies()
         {
-            var companies = _repository.Company.GetAllCompanies(trackChanges: false);
-            var companiesDto = _mapper.Map<IEnumerable<CompanyDto>>(companies);
-            return Ok(companiesDto);
+            var companies = _serviceManager.CompanyService.GetAllCompanies(trackChanges: false);
+            return Ok(companies);
         }
 
         [HttpGet("{id}", Name = "CompanyById")]
         public IActionResult GetCompany(Guid id)
         {
-            var company = _repository.Company.GetCompany(id, trackChanges: false);
-            if (company == null)
-            {
-                _logger.LogInfo($"Company with id: {id} doesn't exist in the database.");
-                return NotFound();
-            }
-            var companyDto = _mapper.Map<CompanyDto>(company);
-            return Ok(companyDto);
+            var company = _serviceManager.CompanyService.GetCompany(id, trackChanges: false);
+            return Ok(company);
         }
 
         [HttpPost]
         public IActionResult PostCompany([FromBody] CompanyCreationDto company)
         {
-            if (company == null)
+            if (company is null)
             {
-                return BadRequest();
+                return BadRequest("CompanyCreationDto object is null");
             }
 
-            var companyEntity = _mapper.Map<Company>(company);
+            var createdCompany = _serviceManager.CompanyService.CreateCompany(company);
 
-            _repository.Company.CreateCompany(companyEntity);
-            _repository.Save();
+            return CreatedAtRoute("CompanyById", new { Id = createdCompany.Id }, createdCompany);
+        }
 
-            var companyToReturn = _mapper.Map<CompanyDto>(companyEntity);
+        [HttpGet("collection/({ids})", Name = "CompanyCollection")] 
+        public IActionResult GetCompanyCollection([ModelBinder(BinderType =typeof(ArrayModelBinder))]IEnumerable<Guid> ids) 
+        { 
+            var companies = _serviceManager.CompanyService.GetByIds(ids, trackChanges: false);
+            return Ok(companies); 
+        }
 
-            return CreatedAtRoute("CompanyById", new { Id = companyToReturn.Id }, companyToReturn);
+        [HttpPost("collection")] 
+        public IActionResult CreateCompanyCollection([FromBody] IEnumerable<CompanyCreationDto> companyCollection) 
+        { 
+            var result = _serviceManager.CompanyService.CreateCompanyCollection(companyCollection);
+
+            return CreatedAtRoute("CompanyCollection", new { result.ids }, result.companies); 
         }
     }
 }
