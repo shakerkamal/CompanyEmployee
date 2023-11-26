@@ -1,3 +1,4 @@
+using CompanyEmployee.ActionFilters;
 using CompanyEmployee.Extensions;
 using Contracts;
 using Microsoft.AspNetCore.Builder;
@@ -31,12 +32,12 @@ namespace CompanyEmployee
             services.ConfigureRepositoryManager();
             services.ConfigureServiceManager();
             services.AddAutoMapper(typeof(Startup));
-
             services.AddControllers(config =>
             {
                 config.RespectBrowserAcceptHeader = true;
                 config.ReturnHttpNotAcceptable = true;
             }).AddXmlDataContractSerializerFormatters();
+            services.AddScoped<ValidationFilterAttribute>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CompanyEmployee.ActionFilters;
+using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 using System;
@@ -33,15 +34,10 @@ namespace CompanyEmployee.Controllers
         }
 
         [HttpPost]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateEmployeeForCompany(Guid companyId, [FromBody] EmployeeCreationDto employee)
         {
-            if (employee == null)
-            {
-                return BadRequest("CompanyCreationDto object is null");
-            }
-
             var employeeToReturn = await _serviceManager.EmployeeService.CreateEmployeeAsync(companyId, employee, trackChanges:false);
-
             return CreatedAtRoute("GetEmployeeForCompany", new { companyId, id = employeeToReturn.Id }, employeeToReturn);
         }
 
@@ -52,12 +48,10 @@ namespace CompanyEmployee.Controllers
             return NoContent(); 
         }
 
-        [HttpPut("{id:guid}")] 
+        [HttpPut("{id:guid}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateEmployeeForCompany(Guid companyId, Guid id, [FromBody] EmployeeUpdateDto employee) 
         { 
-            if (employee is null) 
-                return BadRequest("EmployeeForUpdateDto object is null");
-
             await _serviceManager.EmployeeService.UpdateEmployeeForCompanyAsync(companyId, id, employee, compTrackChanges: false, trackChanges: true); 
             return NoContent(); 
         }

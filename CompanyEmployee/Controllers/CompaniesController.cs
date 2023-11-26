@@ -1,6 +1,5 @@
-﻿using AutoMapper;
+﻿using CompanyEmployee.ActionFilters;
 using CompanyEmployee.ModelBinders;
-using Entities.Models;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -15,12 +14,10 @@ namespace CompanyEmployee.Controllers
     public class CompaniesController : ControllerBase
     {
         private readonly IServiceManager _serviceManager;
-        private readonly IMapper _mapper;
 
-        public CompaniesController(IServiceManager serviceManager, IMapper mapper)
+        public CompaniesController(IServiceManager serviceManager)
         {
             _serviceManager = serviceManager;
-            _mapper = mapper;
         }
 
         [HttpGet]
@@ -38,15 +35,10 @@ namespace CompanyEmployee.Controllers
         }
 
         [HttpPost]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> PostCompany([FromBody] CompanyCreationDto company)
         {
-            if (company is null)
-            {
-                return BadRequest("CompanyCreationDto object is null");
-            }
-
             var createdCompany = await _serviceManager.CompanyService.CreateCompanyAsync(company);
-
             return CreatedAtRoute("CompanyById", new { Id = createdCompany.Id }, createdCompany);
         }
 
@@ -73,10 +65,9 @@ namespace CompanyEmployee.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateCompany(Guid id, [FromBody] CompanyUpdateDto company)
         {
-            if (company is null)
-                return BadRequest("EmployeeForUpdateDto object is null");
             await _serviceManager.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
             return NoContent();
         }

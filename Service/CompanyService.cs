@@ -4,7 +4,6 @@ using Entities.Exceptions;
 using Entities.Models;
 using Service.Contracts;
 using Shared.DataTransferObjects;
-using System.ComponentModel.Design;
 
 namespace Service
 {
@@ -30,9 +29,7 @@ namespace Service
 
         public async Task<CompanyDto> GetCompanyAsync(Guid companyId, bool trackChanges)
         {
-            var company = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
-            if (company is null)
-                throw new CompanyNotFoundException(companyId);
+            var company = await CheckIfCompanyExists(companyId, trackChanges);
             var result = _mapper.Map<CompanyDto>(company);
             return result;
         }
@@ -82,20 +79,24 @@ namespace Service
 
         public async Task DeleteCompanyAsync(Guid companyId, bool trackChanges)
         {
-            var company = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
-            if (company is null)
-                throw new CompanyNotFoundException(companyId);
+            var company = await CheckIfCompanyExists(companyId, trackChanges);
             _repositoryManager.Company.DeleteCompany(company);
             await _repositoryManager.SaveAsync();
         }
 
         public async Task UpdateCompanyAsync(Guid companyId, CompanyUpdateDto companyUpdateDto, bool trackChanges)
         {
-            var company = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
-            if (company is null)
-                throw new CompanyNotFoundException(companyId);
+            var company = await CheckIfCompanyExists(companyId, trackChanges);
             _mapper.Map(companyUpdateDto, company);
             await _repositoryManager.SaveAsync();
+        }
+
+        private async Task<Company> CheckIfCompanyExists(Guid id, bool trackChanges)
+        {
+            var company = await _repositoryManager.Company.GetCompanyAsync(id, trackChanges);
+            if (company is null)
+                throw new CompanyNotFoundException(id);
+            return company;
         }
     }
 }
