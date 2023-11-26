@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using Shared.RequestFeatures;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace CompanyEmployee.Controllers
@@ -19,11 +21,13 @@ namespace CompanyEmployee.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEmployeesForCompany(Guid companyId)
+        public async Task<IActionResult> GetEmployeesForCompany(Guid companyId, [FromQuery] EmployeeParameters employeeParameters)
         {
-            var company = await _serviceManager.EmployeeService.GetEmployeesAsync(companyId, trackChanges: false);
+            var pagedResponse = await _serviceManager.EmployeeService.GetEmployeesAsync(companyId, employeeParameters, trackChanges: false);
 
-            return Ok(company);
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(pagedResponse.metaData));
+
+            return Ok(pagedResponse.employees);
         }
 
         [HttpGet("{id:guid}", Name = "GetEmployeeForCompany")]

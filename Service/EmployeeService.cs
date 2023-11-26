@@ -4,6 +4,7 @@ using Entities.Exceptions;
 using Entities.Models;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using Shared.RequestFeatures;
 
 namespace Service
 {
@@ -20,12 +21,16 @@ namespace Service
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<EmployeeDto>> GetEmployeesAsync(Guid companyId, bool trackChanges)
+        public async Task<(IEnumerable<EmployeeDto> employees, MetaData metaData)> GetEmployeesAsync(Guid companyId, EmployeeParameters employeeParameters, bool trackChanges)
         {
+            if (!employeeParameters.ValidAgeRange)
+                throw new MaxAgeRangeException();
             await CheckIfCompanyExists(companyId, trackChanges);
-            var employees = await _repositoryManager.Employee.GetEmployeesAsync(companyId, trackChanges);
-            var result = _mapper.Map<IEnumerable<EmployeeDto>>(employees);
-            return result;
+            var employeesWithMetaData = await _repositoryManager.Employee
+                .GetEmployeesAsync(companyId, employeeParameters, trackChanges);
+
+            var result = _mapper.Map<IEnumerable<EmployeeDto>>(employeesWithMetaData);
+            return (employees: result, metaData: employeesWithMetaData.MetaData);
         }
 
         public async Task<EmployeeDto> GetEmployeeAsync(Guid companyId, Guid id, bool trackChanges)

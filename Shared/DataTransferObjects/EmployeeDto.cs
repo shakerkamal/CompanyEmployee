@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Shared.DataTransferObjects
+﻿namespace Shared.DataTransferObjects
 {
     public record EmployeeDto(Guid Id, string Name, int Age, string Position);
 }
