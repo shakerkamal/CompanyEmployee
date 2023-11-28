@@ -17,6 +17,7 @@ namespace Service
             CreateMap<EmployeeCreationDto, Employee>();
             CreateMap<EmployeeUpdateDto, Employee>();
             CreateMap<CompanyUpdateDto, Company>();
+            CreateMap<UserRegistrationDto, User>();
         }
     }
 }
