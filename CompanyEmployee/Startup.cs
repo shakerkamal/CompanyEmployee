@@ -38,6 +38,9 @@ namespace CompanyEmployee
                 config.ReturnHttpNotAcceptable = true;
             }).AddXmlDataContractSerializerFormatters();
             services.AddScoped<ValidationFilterAttribute>();
+            services.ConfigureVersioning();
+            services.AddAuthentication();
+            services.ConfigureIdentity();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,6 +66,7 @@ namespace CompanyEmployee
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
