@@ -12,6 +12,7 @@ namespace CompanyEmployee.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CompaniesController : ControllerBase
     {
         private readonly IServiceManager _serviceManager;
@@ -22,7 +23,7 @@ namespace CompanyEmployee.Controllers
         }
 
         [HttpGet(Name ="GetCompanies")]
-        [Authorize]
+        [Authorize(Roles ="Manager")]
         public async Task<IActionResult> GetCompanies()
         {
             var companies = await _serviceManager.CompanyService.GetAllCompaniesAsync(trackChanges: false);
@@ -60,6 +61,7 @@ namespace CompanyEmployee.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteCompany(Guid id)
         {
             await _serviceManager.CompanyService.DeleteCompanyAsync(id, trackChanges: false);
