@@ -42,7 +42,8 @@ namespace CompanyEmployee.Controllers
         {
             if(!await _serviceManger.AutheticationService.AuthenticateUser(user))
                 return Unauthorized();
-            return Ok(new { Token = await _serviceManger.AutheticationService.CreateToken() });
+            var tokenResponse = await _serviceManger.AutheticationService.CreateToken(true);
+            return Ok(tokenResponse);
         }
     }
 }
