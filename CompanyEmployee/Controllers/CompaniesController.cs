@@ -1,5 +1,6 @@
 ﻿using CompanyEmployee.ActionFilters;
 using CompanyEmployee.ModelBinders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -20,7 +21,8 @@ namespace CompanyEmployee.Controllers
             _serviceManager = serviceManager;
         }
 
-        [HttpGet]
+        [HttpGet(Name ="GetCompanies")]
+        [Authorize]
         public async Task<IActionResult> GetCompanies()
         {
             var companies = await _serviceManager.CompanyService.GetAllCompaniesAsync(trackChanges: false);
