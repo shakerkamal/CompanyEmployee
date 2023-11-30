@@ -15,21 +15,24 @@ using System.Text;
 
 namespace Service
 {
-    public class AuthenticationService : IAutheticationService
+    public sealed class AuthenticationService : IAutheticationService
     {
         private readonly ILoggerManager _loggerManager;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
         private readonly IOptions<JwtConfiguration> _configuration; 
         private readonly JwtConfiguration _jwtConfiguration;
+        private readonly IRepositoryManager _repositoryManager;
 
         private User? _user;
 
-        public AuthenticationService(ILoggerManager loggerManager, 
+        public AuthenticationService(IRepositoryManager repositoryManager,
+                                    ILoggerManager loggerManager, 
                                     IMapper mapper, 
                                     UserManager<User> userManager, 
                                     IOptions<JwtConfiguration> configuration)
         {
+            _repositoryManager = repositoryManager;
             _loggerManager = loggerManager;
             _mapper = mapper;
             _userManager = userManager;
@@ -76,19 +79,18 @@ namespace Service
             return new TokenDto(accessToken, refreshToken);
         }
 
-        public async Task<TokenDto> RefreshToken(TokenDto token)
+        public async Task<TokenDto> RefreshToken(string refreshToken)
         {
-            var principal = GetPrincipalFromExpiredToken(token.AccessToken);
+            var user = await GetUserByRefreshToken(refreshToken);
 
-            var user = await _userManager.FindByNameAsync(principal.Identity.Name);
-            if (user == null || user.RefreshToken != token.RefreshToken
-                || user.RefreshTokenExpiryTime <= DateTime.Now)
+            if (user is null || user.RefreshTokenExpiryTime <= DateTime.Now)
                 throw new RefreshTokenBadRequest();
 
             _user = user;
 
             return await CreateToken(false);
         }
+
 
         #region private methods
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCreds, List<Claim> claims)
@@ -137,34 +139,41 @@ namespace Service
             }
         }
 
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        private async Task<User> GetUserByRefreshToken(string token)
         {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
-                ValidateLifetime = true,
-                ValidIssuer = _jwtConfiguration.ValidIssuer,
-                ValidAudience = _jwtConfiguration.ValidAudience
-            };
+            var user = await _repositoryManager.User.GetUserByRefreshToken(token);
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken securityToken;
-
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-
-            var jwtSecurityToken = securityToken as JwtSecurityToken;
-
-            if (jwtSecurityToken != null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-                StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Invalid token");
-            }
-            return principal;
+            return user;
         }
+
+        //private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        //{
+        //    var tokenValidationParameters = new TokenValidationParameters
+        //    {
+        //        ValidateAudience = true,
+        //        ValidateIssuer = true,
+        //        ValidateIssuerSigningKey = true,
+        //        IssuerSigningKey = new SymmetricSecurityKey(
+        //            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
+        //        ValidateLifetime = true,
+        //        ValidIssuer = _jwtConfiguration.ValidIssuer,
+        //        ValidAudience = _jwtConfiguration.ValidAudience
+        //    };
+
+        //    var tokenHandler = new JwtSecurityTokenHandler();
+        //    SecurityToken securityToken;
+
+        //    var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
+
+        //    var jwtSecurityToken = securityToken as JwtSecurityToken;
+
+        //    if (jwtSecurityToken != null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+        //        StringComparison.InvariantCultureIgnoreCase))
+        //    {
+        //        throw new SecurityTokenException("Invalid token");
+        //    }
+        //    return principal;
+        //}
         #endregion
     }
 }

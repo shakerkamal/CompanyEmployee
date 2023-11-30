@@ -19,9 +19,9 @@ namespace CompanyEmployee.Controllers
 
         [HttpPost("refresh")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> Refresh([FromBody]TokenDto token)
+        public async Task<IActionResult> Refresh(string refreshToken)
         {
-            var tokenToReturn = await _serviceManager.AutheticationService.RefreshToken(token);
+            var tokenToReturn = await _serviceManager.AutheticationService.RefreshToken(refreshToken);
 
             return Ok(tokenToReturn);
         }
