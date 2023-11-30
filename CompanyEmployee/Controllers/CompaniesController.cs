@@ -23,7 +23,7 @@ namespace CompanyEmployee.Controllers
         }
 
         [HttpGet(Name ="GetCompanies")]
-        [Authorize(Roles ="Manager")]
+        [Authorize(Roles ="Administrator")]
         public async Task<IActionResult> GetCompanies()
         {
             var companies = await _serviceManager.CompanyService.GetAllCompaniesAsync(trackChanges: false);

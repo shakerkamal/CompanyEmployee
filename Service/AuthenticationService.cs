@@ -1,20 +1,17 @@
 ﻿using AutoMapper;
 using Contracts;
+using Entities.ConfigurationModels;
 using Entities.Exceptions;
 using Entities.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Service.Contracts;
 using Shared.DataTransferObjects;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Service
 {
@@ -23,23 +20,26 @@ namespace Service
         private readonly ILoggerManager _loggerManager;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
-        private readonly IConfiguration _configuration;
+        private readonly IOptions<JwtConfiguration> _configuration; 
+        private readonly JwtConfiguration _jwtConfiguration;
+
         private User? _user;
+
         public AuthenticationService(ILoggerManager loggerManager, 
                                     IMapper mapper, 
                                     UserManager<User> userManager, 
-                                    IConfiguration configuration)
+                                    IOptions<JwtConfiguration> configuration)
         {
             _loggerManager = loggerManager;
             _mapper = mapper;
             _userManager = userManager;
             _configuration = configuration;
+            _jwtConfiguration = _configuration.Value;
         }
 
         public async Task<IdentityResult> RegisterUser(UserRegistrationDto userRegistration)
         {
             var user = _mapper.Map<User>(userRegistration);
-
             var result = await _userManager.CreateAsync(user, userRegistration.Password);
 
             if (result.Succeeded)
@@ -93,14 +93,12 @@ namespace Service
         #region private methods
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCreds, List<Claim> claims)
         {
-            var _jwtSettings = _configuration.GetSection("JwtSettings");
-
             var tokenOptions = new JwtSecurityToken
                 (
-                    issuer: _jwtSettings["validIssuer"],
-                    audience: _jwtSettings["validAudience"],
+                    issuer: _jwtConfiguration.ValidIssuer,
+                    audience: _jwtConfiguration.ValidAudience,
                     claims: claims,
-                    expires: DateTime.Now.AddMinutes(Convert.ToDouble(_jwtSettings["expires"])),
+                    expires: DateTime.Now.AddMinutes(Convert.ToDouble(_jwtConfiguration.Expires)),
                     signingCredentials: signingCreds
                 );
             return tokenOptions;
@@ -108,7 +106,7 @@ namespace Service
 
         private SigningCredentials GetSigningCredentials()
         {
-            var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRECT"));
+            var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"));
             var secret = new SymmetricSecurityKey(key);
 
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
@@ -141,8 +139,6 @@ namespace Service
 
         private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = true,
@@ -151,8 +147,8 @@ namespace Service
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
                 ValidateLifetime = true,
-                ValidIssuer = jwtSettings["validIssuer"],
-                ValidAudience = jwtSettings["validAudience"]
+                ValidIssuer = _jwtConfiguration.ValidIssuer,
+                ValidAudience = _jwtConfiguration.ValidAudience
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
