@@ -15,7 +15,7 @@
 To run locally, check if dotnet version 6.0 is installed by running this command:
 > dotnet --version
 
-If not installed then please install dotnet 6.0 following this link: `https://dotnet.microsoft.com/en-us/download/dotnet/6.0`
+If not installed then please install dotnet 6.0 following this link: [https://dotnet.microsoft.com/en-us/download/dotnet/6.0]()
 
 ## Using the project
 
