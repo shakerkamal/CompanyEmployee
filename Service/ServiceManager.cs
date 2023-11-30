@@ -22,7 +22,7 @@ namespace Service
         {
             _companyService = new Lazy<ICompanyService>(() => new CompanyService(repositoryManager, loggerManager, mapper));
             _employeeService = new Lazy<IEmployeeService>(() => new EmployeeService(repositoryManager, loggerManager, mapper));
-            _authenticationService = new Lazy<IAutheticationService>(() => new AuthenticationService(repositoryManager,loggerManager, mapper, userManager, configuration));
+            _authenticationService = new Lazy<IAutheticationService>(() => new AuthenticationService(loggerManager, mapper, userManager, configuration));
         }
         public ICompanyService CompanyService => _companyService.Value;
 

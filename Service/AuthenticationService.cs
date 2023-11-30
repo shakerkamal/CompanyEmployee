@@ -15,24 +15,21 @@ using System.Text;
 
 namespace Service
 {
-    public sealed class AuthenticationService : IAutheticationService
+    public class AuthenticationService : IAutheticationService
     {
         private readonly ILoggerManager _loggerManager;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
-        private readonly IOptions<JwtConfiguration> _configuration; 
+        private readonly IOptions<JwtConfiguration> _configuration;
         private readonly JwtConfiguration _jwtConfiguration;
-        private readonly IRepositoryManager _repositoryManager;
 
         private User? _user;
 
-        public AuthenticationService(IRepositoryManager repositoryManager,
-                                    ILoggerManager loggerManager, 
-                                    IMapper mapper, 
-                                    UserManager<User> userManager, 
+        public AuthenticationService(ILoggerManager loggerManager,
+                                    IMapper mapper,
+                                    UserManager<User> userManager,
                                     IOptions<JwtConfiguration> configuration)
         {
-            _repositoryManager = repositoryManager;
             _loggerManager = loggerManager;
             _mapper = mapper;
             _userManager = userManager;
@@ -79,18 +76,19 @@ namespace Service
             return new TokenDto(accessToken, refreshToken);
         }
 
-        public async Task<TokenDto> RefreshToken(string refreshToken)
+        public async Task<TokenDto> RefreshToken(TokenDto token)
         {
-            var user = await GetUserByRefreshToken(refreshToken);
+            var principal = GetPrincipalFromExpiredToken(token.AccessToken);
 
-            if (user is null || user.RefreshTokenExpiryTime <= DateTime.Now)
+            var user = await _userManager.FindByNameAsync(principal.Identity.Name);
+            if (user == null || user.RefreshToken != token.RefreshToken
+                || user.RefreshTokenExpiryTime <= DateTime.Now)
                 throw new RefreshTokenBadRequest();
 
             _user = user;
 
             return await CreateToken(false);
         }
-
 
         #region private methods
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCreds, List<Claim> claims)
@@ -121,7 +119,7 @@ namespace Service
             };
 
             var roles = await _userManager.GetRolesAsync(_user);
-            foreach(var role in roles)
+            foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
@@ -132,48 +130,42 @@ namespace Service
         {
             var randomNumber = new byte[32];
 
-            using(var rng = RandomNumberGenerator.Create())
+            using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
             }
         }
 
-        private async Task<User> GetUserByRefreshToken(string token)
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
-            var user = await _repositoryManager.User.GetUserByRefreshToken(token);
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
+                ValidateLifetime = true,
+                ValidIssuer = _jwtConfiguration.ValidIssuer,
+                ValidAudience = _jwtConfiguration.ValidAudience
+            };
 
-            return user;
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken securityToken;
+            var principal = tokenHandler.ValidateToken(token,
+                tokenValidationParameters, out securityToken);
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken != null)
+            {
+                if(!jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new SecurityTokenException("Invalid token");
+                }
+            }
+            return principal;
         }
-
-        //private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
-        //{
-        //    var tokenValidationParameters = new TokenValidationParameters
-        //    {
-        //        ValidateAudience = true,
-        //        ValidateIssuer = true,
-        //        ValidateIssuerSigningKey = true,
-        //        IssuerSigningKey = new SymmetricSecurityKey(
-        //            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
-        //        ValidateLifetime = true,
-        //        ValidIssuer = _jwtConfiguration.ValidIssuer,
-        //        ValidAudience = _jwtConfiguration.ValidAudience
-        //    };
-
-        //    var tokenHandler = new JwtSecurityTokenHandler();
-        //    SecurityToken securityToken;
-
-        //    var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-
-        //    var jwtSecurityToken = securityToken as JwtSecurityToken;
-
-        //    if (jwtSecurityToken != null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-        //        StringComparison.InvariantCultureIgnoreCase))
-        //    {
-        //        throw new SecurityTokenException("Invalid token");
-        //    }
-        //    return principal;
-        //}
         #endregion
     }
 }

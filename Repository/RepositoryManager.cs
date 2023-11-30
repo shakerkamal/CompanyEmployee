@@ -10,7 +10,6 @@ namespace Repository
         private RepositoryContext _repositoryContext;
         private ICompanyRepository _companyRepository;
         private IEmployeeRepository _employeeRepository;
-        private IUserRepository _userRepository;
         private bool _disposed;
 
         public RepositoryManager(RepositoryContext repositoryContext)
@@ -34,16 +33,6 @@ namespace Repository
                 if (_employeeRepository == null)
                     _employeeRepository = new EmployeeRepository(_repositoryContext);
                 return _employeeRepository;
-            }
-        }
-
-        public IUserRepository User
-        {
-            get
-            {
-                if( _userRepository == null)
-                    _userRepository = new UserRepository(_repositoryContext);
-                return _userRepository;
             }
         }
 

@@ -50,4 +50,7 @@ And the response:
 
 ## JWT Token Refresh
 The bearer token only lives for 5 minutes. Upon finishing its lifetime, a new token needs to be generated following the `token/refresh` route.
->![Refresh Token](/assets/)
+>![Refresh Token](/assets/refreshtoken.png)
+
+After passing the refresh token a new access token and refresh token will be provided in the response.
+>![Refresh Token](/assets/refreshtokenresponse.png)
