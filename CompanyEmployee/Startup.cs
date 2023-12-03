@@ -1,3 +1,4 @@
+using Application;
 using CompanyEmployee.ActionFilters;
 using CompanyEmployee.Extensions;
 using Contracts;
@@ -44,6 +45,7 @@ namespace CompanyEmployee
             services.ConfigureIdentity();
             services.ConfigureJWT(Configuration);
             services.AddJwtConfiguration(Configuration);
+            services.AddMediatR(c => c.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
