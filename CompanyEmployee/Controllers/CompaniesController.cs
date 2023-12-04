@@ -1,8 +1,15 @@
-﻿using CompanyEmployee.ActionFilters;
+﻿using Application.Commands.CreateCompanies;
+using Application.Commands.CreateCompany;
+using Application.Commands.DeleteCompany;
+using Application.Commands.UpdateCompany;
+using Application.Queries.GetCompanies;
+using Application.Queries.GetCompaniesByIds;
+using Application.Queries.GetCompany;
+using CompanyEmployee.ActionFilters;
 using CompanyEmployee.ModelBinders;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Service.Contracts;
 using Shared.DataTransferObjects;
 using System;
 using System.Collections.Generic;
@@ -15,25 +22,25 @@ namespace CompanyEmployee.Controllers
     [Authorize]
     public class CompaniesController : ControllerBase
     {
-        private readonly IServiceManager _serviceManager;
+        private readonly ISender _sender;
 
-        public CompaniesController(IServiceManager serviceManager)
+        public CompaniesController(ISender sender)
         {
-            _serviceManager = serviceManager;
+            _sender = sender;
         }
 
         [HttpGet(Name ="GetCompanies")]
         [Authorize(Roles ="Administrator")]
         public async Task<IActionResult> GetCompanies()
         {
-            var companies = await _serviceManager.CompanyService.GetAllCompaniesAsync(trackChanges: false);
+            var companies = await _sender.Send(new GetCompaniesQuery(TrackChanges: false));
             return Ok(companies);
         }
 
         [HttpGet("{id}", Name = "CompanyById")]
         public async Task<IActionResult> GetCompany(Guid id)
         {
-            var company = await _serviceManager.CompanyService.GetCompanyAsync(id, trackChanges: false);
+            var company = await _sender.Send(new GetCompanyQuery(id, false));
             return Ok(company);
         }
 
@@ -41,21 +48,21 @@ namespace CompanyEmployee.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> PostCompany([FromBody] CompanyCreationDto company)
         {
-            var createdCompany = await _serviceManager.CompanyService.CreateCompanyAsync(company);
+            var createdCompany = await _sender.Send(new CreateCompanyCommand(company));
             return CreatedAtRoute("CompanyById", new { Id = createdCompany.Id }, createdCompany);
         }
 
         [HttpGet("collection/({ids})", Name = "CompanyCollection")] 
         public async Task<IActionResult> GetCompanyCollection([ModelBinder(BinderType =typeof(ArrayModelBinder))]IEnumerable<Guid> ids) 
         { 
-            var companies = await _serviceManager.CompanyService.GetByIdsAsync(ids, trackChanges: false);
+            var companies = await _sender.Send(new GetCompaniesByIdsQuery(ids, TrackChanges: false));
             return Ok(companies); 
         }
 
         [HttpPost("collection")] 
         public async Task<IActionResult> CreateCompanyCollection([FromBody] IEnumerable<CompanyCreationDto> companyCollection) 
         { 
-            var result = await _serviceManager.CompanyService.CreateCompanyCollectionAsync(companyCollection);
+            var result = await _sender.Send(new CreateCompaniesCommand(companyCollection));
 
             return CreatedAtRoute("CompanyCollection", new { result.ids }, result.companies); 
         }
@@ -64,7 +71,7 @@ namespace CompanyEmployee.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteCompany(Guid id)
         {
-            await _serviceManager.CompanyService.DeleteCompanyAsync(id, trackChanges: false);
+            await _sender.Send(new DeleteCompanyCommand(id,TrackChanges: false));
             return NoContent();
         }
 
@@ -72,7 +79,7 @@ namespace CompanyEmployee.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateCompany(Guid id, [FromBody] CompanyUpdateDto company)
         {
-            await _serviceManager.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
+            await _sender.Send(new UpdateCompanyCommand(id, company, TrackChanges: true));
             return NoContent();
         }
     }
