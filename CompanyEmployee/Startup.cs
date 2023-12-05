@@ -1,7 +1,10 @@
 using Application;
+using Application.Behaviors;
 using CompanyEmployee.ActionFilters;
 using CompanyEmployee.Extensions;
 using Contracts;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -46,6 +49,8 @@ namespace CompanyEmployee
             services.ConfigureJWT(Configuration);
             services.AddJwtConfiguration(Configuration);
             services.AddMediatR(c => c.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
+            services.AddValidatorsFromAssembly(typeof(AssemblyReference).Assembly);
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

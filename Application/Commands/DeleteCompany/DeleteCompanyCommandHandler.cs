@@ -8,12 +8,10 @@ namespace Application.Commands.DeleteCompany;
 internal sealed class DeleteCompanyCommandHandler : IRequestHandler<DeleteCompanyCommand>
 {
     private readonly IRepositoryManager _repositoryManager;
-    private readonly IMapper _mapper;
 
-    public DeleteCompanyCommandHandler(IRepositoryManager repositoryManager, IMapper mapper)
+    public DeleteCompanyCommandHandler(IRepositoryManager repositoryManager)
     {
         _repositoryManager = repositoryManager;
-        _mapper = mapper;
     }
     public async Task Handle(DeleteCompanyCommand request, CancellationToken cancellationToken)
     {
