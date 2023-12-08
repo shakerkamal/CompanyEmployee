@@ -8,6 +8,10 @@ namespace Repository
 {
     public class RepositoryContext : IdentityDbContext<User>
     {
+        public RepositoryContext()
+        {
+            
+        }
         public RepositoryContext(DbContextOptions options)
             : base(options)
         {
@@ -21,7 +25,7 @@ namespace Repository
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
         }
 
-        public DbSet<Company> Companies { get; set; }
-        public DbSet<Employee> Employees { get; set; }
+        public virtual DbSet<Company> Companies { get; set; }
+        public virtual DbSet<Employee> Employees { get; set; }
     }
 }

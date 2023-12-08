@@ -45,9 +45,6 @@ namespace Repository
         public async ValueTask DisposeAsync()
         {
             await DisposeAsync(true);
-
-            // Take this object off the finalization queue to prevent 
-            // finalization code for this object from executing a second time.
             GC.SuppressFinalize(this);
         }
 
@@ -62,12 +59,8 @@ namespace Repository
             {
                 if (disposing)
                 {
-                    // Dispose managed resources.
                     await _repositoryContext.DisposeAsync();
                 }
-
-                // Dispose any unmanaged resources here...
-
                 _disposed = true;
             }
         }

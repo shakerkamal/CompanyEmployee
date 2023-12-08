@@ -12,7 +12,7 @@ namespace Repository
         protected RepositoryContext RepositoryContext;
         public RepositoryBase(RepositoryContext repositoryContext)
         {
-            RepositoryContext = repositoryContext;
+            RepositoryContext = repositoryContext ?? throw new ArgumentNullException(nameof(repositoryContext));
         }
 
         public IQueryable<T> FindAll(bool trackChanges) =>
