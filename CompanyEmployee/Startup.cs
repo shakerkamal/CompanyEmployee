@@ -65,7 +65,7 @@ namespace CompanyEmployee
                 app.UseHsts();
             }
             app.ConfigureExceptionHandler(logger);
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
