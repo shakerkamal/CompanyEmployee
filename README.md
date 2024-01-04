@@ -1,75 +1,106 @@
 # CompanyEmployee API
-> An API for managing company and the employees of a company.
 
-## Features
- - Token based authentication
- - Company and Employee Maintainance
- - Refersh token for rotating access token
+## Overview
+This repository houses the CompanyEmployee API, a robust solution for efficiently managing company information and employee details. It is built using cutting-edge technologies to ensure security, scalability, and ease of use.
 
-## Built with
-> Dotnet 6.0<br>
-> CQRS Pattern with Mediatr <br>
-> Swagger<br>
-> Repository Pattern <br>
-> ASP.NET Identity with JWT<br>
-> Docker
+## Key Features
 
-## Pre-requisite
-To run locally, check if dotnet version 6.0 is installed by running this command:
-> dotnet --version
+- **Token-Based Authentication:** Secure access through token-based authentication.
+- **Company and Employee Management:** Comprehensive functionality for managing company and employee data.
+- **Refresh Token Mechanism:** Implemented for seamless access token rotation.
 
-If not installed then please install dotnet 6.0 following this link: [https://dotnet.microsoft.com/en-us/download/dotnet/6.0]()
+## Technology Stack
 
-## Using the project
+- **Dotnet 6.0:** Utilizes the latest version of Dotnet for enhanced performance and features.
+- **CQRS Pattern with Mediatr:** Employs a clean and maintainable architecture for command and query handling.
+- **Swagger:** Integrated for easy API documentation and testing.
+- **Repository Pattern:** Organizes data access for increased maintainability.
+- **ASP.NET Identity with JWT:** Ensures secure user authentication and authorization using JSON Web Tokens.
+- **Docker:** Containerized for simplified deployment and scalability.
+- **Unit Testing:** Test coverage with NUnit and Moq.
+## Prerequisites
 
-### Runing locally
-Either download the project as ZIP or clone the repository using the following command.
+Before running the project locally, ensure that Dotnet 6.0 is installed. If not, install it by following this [link](https://dotnet.microsoft.com/en-us/download/dotnet/6.0).
 
-```git clone https://github.com/shakerkamal/CompanyEmployee.git```
+## Getting Started
 
-Create and environment variable from **command line as administrator** for Windows and type the following command.
+### Running Locally
 
-```setx SECRET "SecretKeyForTokenGeneration" /M```
+1. Clone the repository:
 
-If you are using Visual Studio then build the project with `Crtl+Shift+B` command. Once the build is done. Run the project by pressing `F5`.
+    ```bash
+    git clone https://github.com/shakerkamal/CompanyEmployee.git
+    ```
 
-Launch the browser and paste this link or click on this link [http://localhost:5000/swagger/index.html]().
+2. Set the environment variable (Windows):
 
-### Running with docker
-If docker is installed, navigate to the application folder CompanyEmployee and validate that the **Dockerfile** is present in their. Then run the following commands.
-- `dotnet build`
-- `dotnet publish -c Release`
-- `docker build -t CompanyEmployeeApi .`
-- `docker images` to verify if the image with name *CompanyEmployeeApi* has been created or not
-- `docker run -d --name ceapi -p 5000:5000 CompanyEmployeeApi`
-- `docker container ls`
+    ```bash
+    setx SECRET "SecretKeyForTokenGeneration" /M
+    ```
 
-Upon successful execution a container will be created. Open the browser and click the following link [http://localhost:5000/swagger/index.html](link).
+3. Build and run the project in Visual Studio or using the following commands:
 
-It should come up with this swagger UI of the API.
->![Swagger Screen](/assets/swagger-screen.png)
+    ```bash
+    dotnet build
+    dotnet run
+    ```
 
-Since authentication has been enabled, register a user with predefined role `Administrator` following this:
->![User Registration](/assets/registration.png)
+4. Open the Swagger documentation in your browser: [http://localhost:5000/swagger/index.html](http://localhost:5000/swagger/index.html).
 
-After successfully registering, login with the `username` and `password`.
->![User login](/assets/authentication.png)
+### Running with Docker
 
-Correct credentials will generate a `bearer token` and `refresh token`.
->![Authentication response](/assets/authentication-response.png)
+1. Navigate to the project folder:
 
-Click the Authorize icon and paste the generated `bearer token` in value field followed with the word `bearer`.
->![Starting the application](/assets/passingbearertoken.png)
+    ```bash
+    cd CompanyEmployee
+    ```
 
-Call the get companies route and it should return the following response if the above mentioned commands were followed successfully,
->![Get All companies](/assets/getcompanies.png)
+2. Ensure the Dockerfile is present.
 
-And the response:
->![Get All companies response](/assets/getcompaniesresponse.png)
+3. Execute the following commands:
+
+    ```bash
+    dotnet build
+    dotnet publish -c Release
+    docker build -t CompanyEmployeeApi .
+    docker run -d --name ceapi -p 5000:5000 CompanyEmployeeApi
+    ```
+
+4. Verify the container is running:
+
+    ```bash
+    docker container ls
+    ```
+
+5. Access the Swagger documentation in your browser: [http://localhost:5000/swagger/index.html](http://localhost:5000/swagger/index.html).
+
+## Demonstration Steps
+
+1. Register a user with the role `Administrator`.
+    ![User Registration](/assets/registration.png)
+
+2. Login with the registered credentials to obtain the access token and refresh token.
+    ![User Login](/assets/authentication.png)
+
+3. Use the generated bearer token to authenticate and access the API.
+    ![Passing Bearer Token](/assets/passingbearertoken.png)
+
+4. Call the "Get Companies" route to retrieve company information.
+    ![Get All Companies](/assets/getcompanies.png)
+
+5. Verify the successful response.
+    ![Get All Companies Response](/assets/getcompaniesresponse.png)
 
 ## JWT Token Refresh
-The bearer token only lives for 5 minutes. Upon finishing its lifetime, a new token needs to be generated following the `token/refresh` route.
->![Refresh Token](/assets/refreshtoken.png)
 
-After passing the refresh token a new access token and refresh token will be provided in the response.
->![Refresh Token](/assets/refreshtokenresponse.png)
+To refresh the token after its expiration, follow these steps:
+
+1. Access the "Token/Refresh" route in Swagger.
+    ![Refresh Token](/assets/refreshtoken.png)
+
+2. Provide the refresh token to receive a new access token and refresh token.
+    ![Refresh Token Response](/assets/refreshtokenresponse.png)
+
+For a hands-on experience, refer to the [GitHub Repository](https://github.com/shakerkamal/CompanyEmployee) for the complete source code.
+
+Feel free to explore and test the various features outlined above. If you have any questions or require further assistance, please don't hesitate to reach out.

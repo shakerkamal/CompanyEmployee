@@ -1,7 +1,7 @@
 ﻿using Moq;
 using Repository;
 
-namespace CompanyEmployee.Test;
+namespace CompanyEmployee.UnitTest;
 
 public class RepositoryManagerTests
 {

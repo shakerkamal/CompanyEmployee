@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{8FF7C8A8-F96E-4590-8D80-B4712C620500}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyEmployee.Test", "CompanyEmployee.Test\CompanyEmployee.Test.csproj", "{6159BE1F-40A6-4B17-8D79-6CA2AAFC4B9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanyEmployee.UnitTest", "CompanyEmployee.Test\CompanyEmployee.UnitTest.csproj", "{6159BE1F-40A6-4B17-8D79-6CA2AAFC4B9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
